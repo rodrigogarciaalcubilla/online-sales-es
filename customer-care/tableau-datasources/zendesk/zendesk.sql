@@ -291,6 +291,23 @@ zendesk_full as (
   -- where tickets.channel = "api"
 ) --select * from zendesk_full
 ,
+cc_conversion_3d_criteria as 
+(
+  select 
+  id,
+  first_value(assignee_id) over (PARTITION BY policy_number,renewal_order order by zendesk_full.created_at) as first_assignee_id_3_days_criteria
+
+
+  from zendesk_full
+
+  where not (subject in ('Declaración de un siniestro','Inbound answered call on S 2 - Seguimiento Siniestro','Inbound answered call on Numero Test Siniestros','Inbound answered call on S 1 - Apertura Siniestro')) --me quito contactos de sinistros
+  and policy_number is not null
+  and channel <> "api"
+  -- and incidencia_grouped =  "purchase support"
+  and (purchased_at - INTERVAL 3 DAYS) <= zendesk_full.created_at -- esta es la clave
+
+  order by zendesk_full.created_at
+),
 
 recontact as (
 select 
@@ -339,6 +356,7 @@ greatest(zendesk_ticket_metrics.updated_at,zendesk_full.updated_at) as updated_a
 
 from zendesk_full
 left join recontact_date using(id)
+left join cc_conversion_3d_criteria using(id)
 left join hive_metastore.es_pricing_gold_production.zendesk_ticket_metrics on zendesk_ticket_metrics.ticket_id = zendesk_full.id 
 
 where not (subject in ('Declaración de un siniestro','Inbound answered call on S 2 - Seguimiento Siniestro','Inbound answered call on Numero Test Siniestros','Inbound answered call on S 1 - Apertura Siniestro')) --me quito contactos de sinistros
