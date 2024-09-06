@@ -287,6 +287,23 @@ zendesk_full as (
   -- where tickets.channel = "api"
 ) --select * from zendesk_full
 ,
+cc_conversion_3d_criteria as 
+(
+  select 
+  id,
+  first_value(assignee_id) over (PARTITION BY policy_number,renewal_order order by zendesk_full.created_at) as first_assignee_id_3_days_criteria
+
+
+  from zendesk_full
+
+  where not (subject in ('Declaración de un siniestro','Inbound answered call on S 2 - Seguimiento Siniestro','Inbound answered call on Numero Test Siniestros','Inbound answered call on S 1 - Apertura Siniestro')) --me quito contactos de sinistros
+  and policy_number is not null
+  and channel <> "api"
+  -- and incidencia_grouped =  "purchase support"
+  and (purchased_at - INTERVAL 3 DAYS) <= zendesk_full.created_at -- esta es la clave
+
+  order by zendesk_full.created_at
+),
 
 aircall AS 
 (
@@ -442,9 +459,10 @@ first_value(incidencia_grouped) over (partition by client_60 order by created_ti
 
 from recall_date as aircall
 left join join_deduplicate_zendesk on aircall.call_id = join_deduplicate_zendesk.aircall_id
+left join cc_conversion_3d_criteria using(id)
 
 where true 
 and date >= "2022-10-26" --fuera llamadas de test pre-apertura prima
 and in_call_duration > 2 
 and was_answered_yes__no = "Yes"
-and direction = "inbound" --aqui es donde me quito las inbound, no hay ticket asoicado si no es una inbound call.ay ticket asoicado si no es una inbound call.
+and direction = "inbound" --aqui es donde me quito las inbound, no hay ticket asoicado si no es una inbound call.
