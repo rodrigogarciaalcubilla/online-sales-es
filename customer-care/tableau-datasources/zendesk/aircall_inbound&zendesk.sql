@@ -300,7 +300,7 @@ cc_conversion_3d_criteria as
   -- and policy_number is not null
   and channel <> "api"
   and incidencia_grouped =  "purchase support"
-  and (purchased_at - INTERVAL 3 DAYS) <= zendesk_full.created_at -- esta es la clave
+   and ((purchased_at - INTERVAL 3 DAYS) <= zendesk_full.created_at or purchased_at is null) -- esta es la clave
 
   order by zendesk_full.created_at
 ),
