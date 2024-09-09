@@ -301,7 +301,7 @@ cc_conversion_3d_criteria as
   from zendesk_full
 
   where not (subject in ('Declaración de un siniestro','Inbound answered call on S 2 - Seguimiento Siniestro','Inbound answered call on Numero Test Siniestros','Inbound answered call on S 1 - Apertura Siniestro')) --me quito contactos de sinistros
-  and policy_number is not null
+  -- and policy_number is not null
   and channel <> "api"
   -- and incidencia_grouped =  "purchase support"
   and (purchased_at - INTERVAL 3 DAYS) <= zendesk_full.created_at -- esta es la clave
