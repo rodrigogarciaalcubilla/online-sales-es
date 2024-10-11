@@ -110,6 +110,7 @@ zendesk_full as (
 
     ,tickets.* --except(user_created_at,user_updated_at,updated_at,last_login_at),
      ,  case 
+    when lower(Tipo_de_incidencia) ilike '%llamada_perdida%' then 'llamada perdida'
     WHEN LOWER(Tipo_de_incidencia) = 'Cliente_pide_documentación__CCPP' then 'Documentation request'
     WHEN LOWER(Tipo_de_incidencia) = 'Solicitud_información__Ya_cliente' then 'Information request'
     WHEN LOWER(Tipo_de_incidencia) = 'Cliente_pide_documentación__Partes_amistosos' then 'Documentation request'
@@ -283,7 +284,9 @@ zendesk_full as (
   from hive_metastore.es_pricing_gold_production.zendesk_tickets as tickets
   left join users using(requester_id)
   LEFT JOIN policies_by_ticket_unqiue using(id)
-
+  
+  where true
+  and ticket_form_id <> 19015738424477 --filtramos formulario sineistros
   -- where tickets.channel = "api"
 ) --select * from zendesk_full
 ,
