@@ -111,6 +111,7 @@ zendesk_full as (
     ,tickets.* except(channel)--except(user_created_at,user_updated_at,updated_at,last_login_at),
     , case when channel = "api" and tickets.description ilike "%aircall%" then "aircall" else tickets.channel end as channel
     , case 
+        when lower(Tipo_de_incidencia) ilike '%llamada_perdida%' then 'llamada perdida'
         when lower(tipo_de_incidencia) = 'cliente_pide_documentación__ccpp' then 'documentation request'
         when lower(tipo_de_incidencia) = 'solicitud_información__ya_cliente' then 'information request'
         when lower(tipo_de_incidencia) = 'cliente_pide_documentación__partes_amistosos' then 'documentation request'
@@ -287,7 +288,9 @@ zendesk_full as (
   from hive_metastore.es_pricing_gold_production.zendesk_tickets as tickets
   left join users using(requester_id)
   LEFT JOIN policies_by_ticket_unqiue using(id)
-
+  
+  where true
+  and ticket_form_id <> 19015738424477 --filtramos formulario sineistros
   -- where tickets.channel = "api"
 ) --select * from zendesk_full
 ,
